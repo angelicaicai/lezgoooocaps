@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "100144255999",
+    "project_id": "justifind-9fda1",
+    "storage_bucket": "justifind-9fda1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:100144255999:android:e499037667acabe204cdca",
+        "android_client_info": {
+          "package_name": "com.example.justifind_capstone_2_final"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPpHUQz5htiRhTRe_uFWB6hhQbwyVjy8E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
