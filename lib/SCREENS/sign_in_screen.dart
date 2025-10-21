@@ -54,12 +54,6 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
-  // Test with sample user credentials
-  void _useSampleCredentials() {
-    _emailController.text = 'testuser@justifind.com';
-    _passwordController.text = 'Test123!';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,25 +70,12 @@ class _SignInScreenState extends State<SignInScreen> {
               const SizedBox(height: 16),
               Text('Sign In', style: Theme.of(context).textTheme.displayLarge),
               const SizedBox(height: 8),
-              Text('Access your Justi-Find account', 
-                  style: Theme.of(context).textTheme.bodyMedium),
-              
-              const SizedBox(height: 40),
-
-              // Sample User Button (for testing)
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: _useSampleCredentials,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.darkIndigo,
-                    side: BorderSide(color: AppColors.darkIndigo),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: const Text('Use Sample Account for Testing'),
-                ),
+              Text(
+                'Access your Justi-Find account',
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
-              const SizedBox(height: 16),
+
+              const SizedBox(height: 40),
 
               // Error Message
               if (_errorMessage.isNotEmpty) ...[
@@ -109,7 +90,12 @@ class _SignInScreenState extends State<SignInScreen> {
                     children: [
                       const Icon(Icons.error, color: Colors.red),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(_errorMessage, style: const TextStyle(color: Colors.red))),
+                      Expanded(
+                        child: Text(
+                          _errorMessage,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -119,12 +105,18 @@ class _SignInScreenState extends State<SignInScreen> {
               // Email Field
               TextFormField(
                 controller: _emailController,
+                style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
                   labelText: 'Email',
-                  prefixIcon: Icon(Icons.email),
-                  border: OutlineInputBorder(),
-                  filled: true,
-                  fillColor: Colors.white,
+                  labelStyle: TextStyle(color: Colors.white),
+                  hintStyle: TextStyle(color: Colors.white70),
+                  prefixIcon: Icon(Icons.email, color: Colors.white),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white70),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -141,38 +133,52 @@ class _SignInScreenState extends State<SignInScreen> {
               // Password Field
               TextFormField(
                 controller: _passwordController,
-                obscureText: true,
+                style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
                   labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock),
-                  border: OutlineInputBorder(),
-                  filled: true,
-                  fillColor: Colors.white,
+                  labelStyle: TextStyle(color: Colors.white),
+                  hintStyle: TextStyle(color: Colors.white70),
+                  prefixIcon: Icon(Icons.email, color: Colors.white),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white70),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your password';
                   }
-                  if (value.length < 6) {
-                    return 'Password must be at least 6 characters';
+                  if (!value.contains('')) {
+                    return 'Password must be at least 6 characters long';
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Sign In Button
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.pnpGold,
+                    foregroundColor: AppColors.pnpBlue, // Text color
+                  ),
                   onPressed: _isLoading ? null : _signIn,
-                  child: _isLoading 
-                      ? const SizedBox(
-                          height: 20, width: 20,
-                          child: CircularProgressIndicator(),
-                        )
-                      : const Text('Sign In'),
+                  child:
+                      _isLoading
+                          ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(),
+                          )
+                          : const Text(
+                            'Sign In',
+                            style: TextStyle(color: AppColors.pnpBlue),
+                          ),
                 ),
               ),
               const SizedBox(height: 16),

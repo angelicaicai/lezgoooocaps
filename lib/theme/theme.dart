@@ -1,8 +1,14 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use, unused_import
 
 import 'package:flutter/material.dart';
+import '../theme/theme.dart'; // Adjust the path as needed
 
 class AppColors {
+  static const Color pnpGold = Color(0xFFFFD700);
+  static const Color pnpBlue = Color(0xFF003399);
+  static const Color pnpRed = Color(0xFFC8102E);
+  static const Color pnpWhite = Color(0xFFFFFFFF);
+  static const Color pnpGray = Color(0xFFEEEEEE);
   static const Color darkIndigo = Color(0xFF4B4E6D);
   static const Color mutedLavender = Color(0xFFA9A9B7);
   static const Color steelGray = Color(0xFF606E8C);
@@ -34,19 +40,31 @@ Color withOpacity(Color color, double opacity) {
 
 ThemeData buildTheme() {
   return ThemeData(
-    primaryColor: AppColors.darkIndigo,
-    scaffoldBackgroundColor: AppColors.charcoal,
+    primaryColor: AppColors.pnpGold,
+    scaffoldBackgroundColor: AppColors.pnpGray,
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.charcoal,
-      foregroundColor: AppColors.softSilver,
+      backgroundColor: AppColors.pnpGray,
+      foregroundColor: AppColors.pnpWhite,
       elevation: 2,
     ),
     textTheme: const TextTheme(
-      displayLarge: TextStyle(color: AppColors.softSilver, fontSize: 24, fontWeight: FontWeight.bold),
-      displayMedium: TextStyle(color: AppColors.softSilver, fontSize: 20, fontWeight: FontWeight.bold),
-      bodyLarge: TextStyle(color: AppColors.softSilver, fontSize: 16),
-      bodyMedium: TextStyle(color: AppColors.mutedLavender, fontSize: 14),
-      labelLarge: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+      displayLarge: TextStyle(
+        color: Colors.white,
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+      ),
+      displayMedium: TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
+      bodyLarge: TextStyle(color: Colors.white, fontSize: 16),
+      bodyMedium: TextStyle(color: Colors.white70, fontSize: 14),
+      labelLarge: TextStyle(
+        color: Colors.white,
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+      ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
@@ -60,10 +78,13 @@ ThemeData buildTheme() {
         borderSide: const BorderSide(color: AppColors.darkIndigo, width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      labelStyle: TextStyle(color: Colors.white),
+      hintStyle: TextStyle(color: Colors.white70),
+      prefixIconColor: Colors.white,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.darkIndigo,
+        backgroundColor: AppColors.pnpGold,
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),

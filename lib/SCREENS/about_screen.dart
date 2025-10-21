@@ -25,10 +25,11 @@ class AboutScreen extends StatelessWidget {
               'Our Vision',
               'Bridging the gap between legal knowledge and everyday safety in the Philippines. We believe that an informed citizen is an empowered citizen.',
               Icons.lightbulb_outline,
+              isFirst: true,
             ),
-            
+
             const SizedBox(height: 30),
-            
+
             // Mission Section
             _buildSection(
               context,
@@ -36,9 +37,9 @@ class AboutScreen extends StatelessWidget {
               'To democratize access to legal information by transforming complex criminal laws into understandable, actionable knowledge for every Filipino.',
               Icons.flag_outlined,
             ),
-            
+
             const SizedBox(height: 30),
-            
+
             // What Makes Us Different
             Card(
               elevation: 0,
@@ -54,9 +55,8 @@ class AboutScreen extends StatelessWidget {
                         const SizedBox(width: 10),
                         Text(
                           'What Makes Justi-Find Unique',
-                          style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                            color: AppColors.darkIndigo,
-                          ),
+                          style: Theme.of(context).textTheme.displayMedium
+                              ?.copyWith(color: AppColors.darkIndigo),
                         ),
                       ],
                     ),
@@ -81,9 +81,9 @@ class AboutScreen extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 30),
-            
+
             // The Story Behind Justi-Find
             _buildSection(
               context,
@@ -91,9 +91,9 @@ class AboutScreen extends StatelessWidget {
               'Justi-Find was born from a simple observation: many Filipinos want to understand their legal rights and protections but find the legal system intimidating and inaccessible. We\'re here to change that.',
               Icons.history_edu_outlined,
             ),
-            
+
             const SizedBox(height: 30),
-            
+
             // Values
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,17 +108,20 @@ class AboutScreen extends StatelessWidget {
                   runSpacing: 10,
                   children: [
                     _buildValueChip('Transparency', Icons.visibility_outlined),
-                    _buildValueChip('Accessibility', Icons.accessibility_outlined),
-                    
+                    _buildValueChip(
+                      'Accessibility',
+                      Icons.accessibility_outlined,
+                    ),
+
                     _buildValueChip('Community', Icons.people_outlined),
                     _buildValueChip('Integrity', Icons.shield_outlined),
                   ],
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 30),
-            
+
             // Call to Action
             Container(
               width: double.infinity,
@@ -133,16 +136,16 @@ class AboutScreen extends StatelessWidget {
                 children: [
                   Text(
                     'Join Our Mission',
-                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                      color: Colors.white,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.displayMedium?.copyWith(color: Colors.white),
                   ),
                   const SizedBox(height: 10),
                   Text(
                     'Together, we can build a safer, more legally-literate Philippines. Your awareness today prevents crime tomorrow.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white70,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 15),
@@ -159,16 +162,16 @@ class AboutScreen extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Footer
             Center(
               child: Text(
                 'Justi-Find © 2024 • Making Legal Knowledge Accessible',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -178,7 +181,13 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSection(BuildContext context, String title, String content, IconData icon) {
+  Widget _buildSection(
+    BuildContext context,
+    String title,
+    String content,
+    IconData icon, {
+    bool isFirst = false,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -195,11 +204,18 @@ class AboutScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: Theme.of(context).textTheme.displayMedium),
+              Text(
+                title,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
               const SizedBox(height: 8),
               Text(
                 content,
-                style: Theme.of(context).textTheme.bodyLarge,
+                style: TextStyle(color: Colors.white, fontSize: 16),
               ),
             ],
           ),
@@ -229,10 +245,7 @@ class AboutScreen extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   description,
-                  style: TextStyle(
-                    color: Colors.grey[700],
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.grey[700], fontSize: 14),
                 ),
               ],
             ),

@@ -29,60 +29,62 @@ samples, guidance on mobile development, and a full API reference.
 
 </div>
 
+---
+
 ## 📋 Overview
 
-JustiFind is an innovative Flutter-based mobile application developed as a capstone project in collaboration with the **Aparri Police Station** and **Cagayan State University at Aparri**. The app serves as an intelligent legal reference tool that helps law enforcement personnel, legal professionals, and students quickly match crime descriptions with relevant laws from the Revised Penal Code and other special laws of the Philippines.
+JustiFind is a mobile application designed to help law enforcement, legal professionals, and the public quickly match crime incidents with the relevant laws and legal provisions in the Philippines. It features a smart search, comprehensive legal database, and user-friendly design.
 
-## 🎯 Purpose
-
-The application addresses critical challenges in legal reference:
-- **Time-consuming** manual lookup of laws in physical books
-- **Difficulty** in finding exact legal provisions for specific crimes
-- **Limited accessibility** to comprehensive legal databases in the field
-- **Language barriers** in understanding complex legal terminology
+---
 
 ## ✨ Key Features
 
-### 🔍 Smart Legal Matching
-- **AI-powered crime-to-law matching** using natural language processing
-- **Keyword-based search** across the entire Revised Penal Code
-- **Categorized crime listings** for intuitive navigation
+| Feature                        | Description                                                                                   |
+|---------------------------------|-----------------------------------------------------------------------------------------------|
+| 🔍 **Smart Legal Matching**     | AI-powered crime-to-law matching using natural language processing.<br>Keyword-based search across the entire Revised Penal Code.<br>Categorized crime listings for intuitive navigation. |
+| 🌐 **Bilingual Support**        | Dual-language interface (English and Tagalog).<br>Tagalog input support for native language queries.<br>Simplified legal explanations in both languages. |
+| 📚 **Comprehensive Legal Database** | Complete Revised Penal Code of the Philippines.<br>Special Laws and relevant legal provisions.<br>1987 Philippine Constitution search functionality.<br>Regular updates to include new jurisprudence. |
+| 🎯 **User-Focused Design**      | Intuitive mobile interface optimized for field use.<br>Offline capability for areas with limited internet connectivity.<br>Fast response times for critical situations.<br>User-friendly legal explanations. |
 
-### 🌐 Bilingual Support
-- **Dual-language interface** (English and Tagalog)
-- **Tagalog input support** for native language queries
-- **Simplified legal explanations** in both languages
+---
 
-### 📚 Comprehensive Legal Database
-- **Complete Revised Penal Code** of the Philippines
-- **Special Laws** and relevant legal provisions
-- **1987 Philippine Constitution** search functionality
-- **Regular updates** to include new jurisprudence
+## 🚀 Getting Started
 
-### 🎯 User-Focused Design
-- **Intuitive mobile interface** optimized for field use
-- **Offline capability** for areas with limited internet connectivity
-- **Fast response times** for critical situations
-- **User-friendly legal explanations**
+This project is a starting point for a Flutter application.
 
-## 🛠 Technology Stack
+A few resources to get you started if this is your first Flutter project:
 
-- **Frontend**: Flutter SDK
-- **Programming Language**: Dart
-- **State Management**: Provider/Bloc
-- **Local Database**: SQLite/Hive
-- **Backend API**: RESTful Services
-- **Version Control**: Git
+- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-## 🚀 Installation & Setup
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
 
-### Prerequisites
-- Flutter SDK (version 3.0 or higher)
-- Android Studio / VS Code with Flutter extension
-- Android Emulator or physical device
+---
 
-### Installation Steps
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/angelicaicai/justifind_capstone_2_final.git
-   cd justifind_capstone_2_final
+## 🛠️ Tech Stack
+
+- **Flutter** & **Dart**
+- **Firebase** (Authentication, Firestore)
+- **Android** & **iOS** support
+
+---
+
+## 🤝 Partner Agency
+
+Developed in partnership with **PNP Aparri**.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+<div align="center">
+
+**JustiFind** – Empowering justice through technology.
+
+</div>

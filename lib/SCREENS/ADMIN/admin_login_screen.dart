@@ -1,8 +1,9 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import '../../services/admin_service.dart';
-import '../../theme/theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:justifind_capstone_2_final/theme/theme.dart';
 
 class AdminLoginScreen extends StatefulWidget {
   const AdminLoginScreen({super.key});
@@ -13,52 +14,43 @@ class AdminLoginScreen extends StatefulWidget {
 
 class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  late AdminService _adminService;
-  bool _isLoading = false;
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  bool isLoading = false;
   String _errorMessage = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _adminService = AdminService();
-  }
 
   void _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = true;
+        isLoading = true;
         _errorMessage = '';
       });
 
       try {
-        final admin = await _adminService.adminLogin(
-          _emailController.text.trim(),
-          _passwordController.text.trim(),
-        );
-
-        // Check if widget is still mounted before using context
-        if (!mounted) return;
-        
-        setState(() => _isLoading = false);
-
-        if (admin != null) {
+        final credential = await FirebaseAuth.instance
+            .signInWithEmailAndPassword(
+              email: emailController.text.trim(),
+              password: passwordController.text.trim(),
+            );
+        // Check if user is admin (e.g., Firestore field 'role' == 'admin')
+        final doc =
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(credential.user!.uid)
+                .get();
+        if (doc.exists && doc['role'] == 'admin') {
           Navigator.pushReplacementNamed(context, '/admin-dashboard');
         } else {
           setState(() {
-            _errorMessage = 'Invalid admin credentials';
+            _errorMessage = 'Access denied: Not an admin';
           });
         }
       } catch (e) {
-        // Check if widget is still mounted before using context
-        if (!mounted) return;
-        
         setState(() {
-          _isLoading = false;
           _errorMessage = 'Login failed. Please try again.';
         });
       }
+      setState(() => isLoading = false);
     }
   }
 
@@ -73,8 +65,11 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.admin_panel_settings, 
-                  size: 80, color: AppColors.darkIndigo),
+              Icon(
+                Icons.admin_panel_settings,
+                size: 80,
+                color: AppColors.darkIndigo,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Admin Login',
@@ -112,13 +107,33 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               ],
 
               TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Admin Email',
-                  prefixIcon: Icon(Icons.email),
-                  border: OutlineInputBorder(),
+                controller: emailController,
+                style: const TextStyle(color: Colors.white), // Input text color
+                decoration: InputDecoration(
+                  labelText: 'Admin Email', // or 'Email'
+                  labelStyle: const TextStyle(
+                    color: Colors.white,
+                  ), // Label color
+                  hintStyle: const TextStyle(
+                    color: Colors.white70,
+                  ), // Hint color
+                  prefixIcon: const Icon(
+                    Icons.email,
+                    color: Colors.white,
+                  ), // Icon color
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white70),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  fillColor: Colors.transparent,
                   filled: true,
-                  fillColor: Colors.white,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -130,42 +145,63 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               const SizedBox(height: 16),
 
               TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock),
-                  border: OutlineInputBorder(),
+                controller: passwordController,
+                style: const TextStyle(color: Colors.white), // Input text color
+                decoration: InputDecoration(
+                  labelText: 'Admin Password', // or 'Password'
+                  labelStyle: const TextStyle(
+                    color: Colors.white,
+                  ), // Label color
+                  hintStyle: const TextStyle(
+                    color: Colors.white70,
+                  ), // Hint color
+                  prefixIcon: const Icon(
+                    Icons.email,
+                    color: Colors.white,
+                  ), // Icon color
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white70),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  fillColor: Colors.transparent,
                   filled: true,
-                  fillColor: Colors.white,
                 ),
-                obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter password';
+                    return 'Please enter your password';
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
-                  child: _isLoading 
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(),
-                        )
-                      : const Text('Login as Admin'),
+                  onPressed: isLoading ? null : _login,
+                  child:
+                      isLoading
+                          ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(),
+                          )
+                          : const Text('Login as Admin'),
                 ),
               ),
               const SizedBox(height: 16),
 
               TextButton(
-                onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
+                onPressed:
+                    () => Navigator.pushReplacementNamed(context, '/home'),
                 child: const Text('← Back to Main App'),
               ),
             ],
@@ -177,8 +213,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
     super.dispose();
   }
 }

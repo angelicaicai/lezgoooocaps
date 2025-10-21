@@ -3,86 +3,20 @@
 import 'package:flutter/material.dart';
 import 'package:justifind_capstone_2_final/theme/theme.dart';
 import 'package:justifind_capstone_2_final/screens/crimes/crime_detail_screen.dart';
-import 'package:justifind_capstone_2_final/models/crime_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  // Add the crimes list here
-  final List<Crime> crimes = const [
-    Crime(
-      title: "Theft",
-      description: "Unauthorized taking of someone else's property",
-      severity: "High",
-      color: Colors.orange,
-      category: "Property Crime",
-      laws: {"RA 3815": "Theft and Robbery"},
-      penalties: ["Imprisonment", "Fines"],
-      preventionTips: ["Lock doors", "Keep valuables secure"],
-    ),
-    Crime(
-      title: "Assault",
-      description: "Physical attack or threat of attack",
-      severity: "High",
-      color: Colors.red,
-      category: "Violent Crime",
-      laws: {"RA 3815": "Assault and Battery"},
-      penalties: ["Imprisonment", "Fines"],
-      preventionTips: ["Avoid conflicts", "Seek help"],
-    ),
-    Crime(
-      title: "Burglary",
-      description: "Unlawful entry into a building to commit a crime",
-      severity: "Medium",
-      color: Colors.blue,
-      category: "Property Crime",
-      laws: {"RA 3815": "Burglary"},
-      penalties: ["Imprisonment", "Fines"],
-      preventionTips: ["Install alarms", "Use strong locks"],
-    ),
-    // Optional: Additional common crimes in the Philippines
-    Crime(
-      title: "Estafa (Swindling)",
-      description: "Deception for unlawful gain through false pretenses",
-      severity: "Medium",
-      color: Colors.amber,
-      category: "White-Collar Crime",
-      laws: {"RA 3815": "Revised Penal Code - Estafa"},
-      penalties: ["4-20 years imprisonment", "Restitution", "Fines"],
-      preventionTips: [
-        "Verify transactions",
-        "Avoid too-good-to-be-true offers",
-        "Use official channels",
-      ],
-    ),
-
-    Crime(
-      title: "Cybercrime",
-      description: "Criminal activities conducted through digital means",
-      severity: "Medium",
-      color: Colors.cyan,
-      category: "Digital Crime",
-      laws: {"RA 10175": "Cybercrime Prevention Act of 2012"},
-      penalties: [
-        "6-12 years imprisonment",
-        "Fines up to ₱500,000",
-        "Asset forfeiture",
-      ],
-      preventionTips: [
-        "Use strong passwords",
-        "Enable 2FA",
-        "Avoid suspicious links",
-        "Update security software",
-      ],
-    ),
-    // Add more crimes as needed...
-  ];
-
   @override
   Widget build(BuildContext context) {
+    // Get all special laws from lawDetails
+    final specialLawList = lawDetails.entries.toList();
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Justi-Find'),
+        title: const Text('Special Laws'),
         backgroundColor: AppColors.charcoal,
         actions: [
           IconButton(
@@ -112,48 +46,111 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Crime Prevention & Legal Information',
+                  'Special Laws & Provisions',
                   style: Theme.of(context).textTheme.displayLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Learn about major crimes and their legal consequences',
+                  'Learn about special laws provided by PNP Aparri',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
             ),
           ),
 
-          // Quick Stats
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildStatCard(
-                  crimes.length.toString(),
-                  'Crimes Covered',
-                  context,
-                ),
-                _buildStatCard('50+', 'Legal Articles', context),
-                _buildStatCard('24/7', 'Access', context),
-              ],
-            ),
-          ),
-
-          // Crimes Grid
+          // Special Laws List
           Expanded(
-            child: GridView.builder(
+            child: ListView.builder(
               padding: const EdgeInsets.all(16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.8,
-              ),
-              itemCount: crimes.length,
+              itemCount: specialLawList.length,
               itemBuilder: (context, index) {
-                return _buildCrimeCard(crimes[index], context);
+                final law = specialLawList[index].value;
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 4,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.darkIndigo, AppColors.steelGray],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: ListTile(
+                      title: Text(
+                        law['title'] ?? '',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleMedium?.copyWith(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        law['summary'] ?? '',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder:
+                              (context) => AlertDialog(
+                                title: Text(law['title'] ?? ''),
+                                content: SingleChildScrollView(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        law['summary'] ?? '',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge?.copyWith(
+                                          color:
+                                              Colors
+                                                  .black87, 
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'Key Provisions:',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium?.copyWith(
+                                          color:
+                                              Colors
+                                                  .black87, 
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        law['keyProvisions'] ?? '',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge?.copyWith(
+                                          color:
+                                              Colors
+                                                  .black87, 
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Close'),
+                                  ),
+                                ],
+                              ),
+                        );
+                      },
+                    ),
+                  ),
+                );
               },
             ),
           ),
@@ -180,8 +177,8 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.home, color: AppColors.softSilver),
-            title: const Text(
+            leading: Icon(Icons.home, color: AppColors.softSilver),
+            title: Text(
               'Home',
               style: TextStyle(color: AppColors.softSilver),
             ),
@@ -190,22 +187,11 @@ class HomeScreen extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.search, color: AppColors.softSilver),
-            title: const Text(
-              'Search Crimes',
-              style: TextStyle(color: AppColors.softSilver),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/search');
-            },
-          ),
-          ListTile(
-            leading: const Icon(
+            leading: Icon(
               Icons.admin_panel_settings,
               color: AppColors.softSilver,
             ),
-            title: const Text(
+            title: Text(
               'Admin Access',
               style: TextStyle(color: AppColors.softSilver),
             ),
@@ -215,8 +201,8 @@ class HomeScreen extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.info, color: AppColors.softSilver),
-            title: const Text(
+            leading: Icon(Icons.info, color: AppColors.softSilver),
+            title: Text(
               'About',
               style: TextStyle(color: AppColors.softSilver),
             ),
@@ -227,8 +213,8 @@ class HomeScreen extends StatelessWidget {
           ),
           const Divider(color: AppColors.steelGray),
           ListTile(
-            leading: const Icon(Icons.logout, color: AppColors.softSilver),
-            title: const Text(
+            leading: Icon(Icons.logout, color: AppColors.softSilver),
+            title: Text(
               'Sign Out',
               style: TextStyle(color: AppColors.softSilver),
             ),
@@ -241,87 +227,14 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildStatCard(String value, String label, BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(value, style: Theme.of(context).textTheme.displayMedium),
-            const SizedBox(height: 4),
-            Text(label, style: Theme.of(context).textTheme.bodyMedium),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCrimeCard(Crime crime, BuildContext context) {
-    return Card(
-      elevation: 2,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CrimeDetailScreen(crime: crime),
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: crime.color,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  crime.category,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                crime.title,
-                style: Theme.of(context).textTheme.displayMedium,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                crime.description,
-                style: Theme.of(context).textTheme.bodyMedium,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const Spacer(),
-              Row(
-                children: [
-                  Chip(
-                    label: Text(
-                      crime.severity,
-                      style: const TextStyle(fontSize: 10),
-                    ),
-                    backgroundColor:
-                        crime.severity.contains('High')
-                            ? Colors.red.withOpacity(0.2)
-                            : Colors.blue.withOpacity(0.2),
-                  ),
-                  const Spacer(),
-                  const Icon(Icons.arrow_forward_ios, size: 16),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+Future<void> incrementAccessCount() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    final userDoc = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid);
+    await userDoc.update({'accessCount': FieldValue.increment(1)});
   }
 }
