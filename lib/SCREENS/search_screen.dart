@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:justifind_capstone_2_final/theme/theme.dart';
+
+import 'home_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -13,189 +13,224 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final TextEditingController _controller = TextEditingController();
-  List<QueryDocumentSnapshot> _results = [];
-  bool _loading = false;
-  String _status = '';
+  final TextEditingController _searchController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> _logSearch(String keyword) async {
-    try {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      final email = FirebaseAuth.instance.currentUser?.email;
-      final data = {
-        'keyword': keyword,
-        'timestamp': FieldValue.serverTimestamp(),
-        if (uid != null) 'uid': uid,
-        if (email != null) 'email': email,
-      };
+  List<Map<String, dynamic>> _searchResults = [];
+  bool _isLoading = false;
 
-      // Global log
-      await FirebaseFirestore.instance.collection('search_logs').add(data);
-
-      // Per-user log (if logged in)
-      if (uid != null) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .collection('search_history')
-            .add(data);
-      }
-    } catch (e) {
-      // silent fail, but update status so admin/dev can see
-      setState(() => _status = 'Failed to log search: $e');
-    }
-  }
-
-  Future<void> _performSearch(String query) async {
-    final q = query.trim();
-    if (q.isEmpty) {
-      setState(() {
-        _results = [];
-        _status = '';
-      });
+  Future<void> _searchCrimes(String query) async {
+    if (query.isEmpty) {
+      setState(() => _searchResults = []);
       return;
     }
 
-    setState(() {
-      _loading = true;
-      _status = '';
-    });
-
-    await _logSearch(q);
+    setState(() => _isLoading = true);
 
     try {
-      // Fetch all crimes and filter client-side for flexible matching
-      final snapshot =
-          await FirebaseFirestore.instance.collection('crimes').get();
-      final matches =
-          snapshot.docs.where((doc) {
-            final data = doc.data();
-            final title = (data['title'] ?? '').toString().toLowerCase();
-            final desc =
-                (data['description'] ?? data['summary'] ?? '')
-                    .toString()
-                    .toLowerCase();
-            final keywords =
-                (data['keywords'] ?? [])
-                    .cast<String?>()
-                    .where((k) => k != null)
-                    .map((k) => k!.toLowerCase())
-                    .toList();
-            final qLower = q.toLowerCase();
-            return title.contains(qLower) ||
-                desc.contains(qLower) ||
-                keywords.any((k) => k.contains(qLower));
-          }).toList();
+      final snapshot = await _firestore.collection('crimelist').get();
 
-      setState(() {
-        _results = matches;
-        if (_results.isEmpty) _status = 'No results';
-      });
+      final results =
+          snapshot.docs
+              .where((doc) {
+                final name = doc.id.toLowerCase();
+                final desc =
+                    (doc['description'] ?? '').toString().toLowerCase();
+                return name.contains(query.toLowerCase()) ||
+                    desc.contains(query.toLowerCase());
+              })
+              .map((doc) {
+                return {
+                  'name': doc.id,
+                  'law': doc['law'],
+                  'description': doc['description'],
+                };
+              })
+              .toList();
+
+      setState(() => _searchResults = results);
     } catch (e) {
-      setState(() {
-        _status = 'Search failed: $e';
-      });
+      debugPrint('Error searching crimes: $e');
     } finally {
-      setState(() => _loading = false);
+      setState(() => _isLoading = false);
     }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Widget _buildResultCard(QueryDocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    final title = data['title'] ?? data['name'] ?? 'Untitled';
-    final desc = data['description'] ?? data['summary'] ?? '';
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: AppColors.darkIndigo,
-      child: ListTile(
-        title: Text(
-          title,
-          style: const TextStyle(
-            color: AppColors.pnpWhite,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        subtitle: Text(desc, style: const TextStyle(color: Colors.white70)),
-        onTap: () {
-          // navigate to detail screen if available
-          // Navigator.pushNamed(context, '/crime-detail', arguments: doc.id);
-        },
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.yellow[50],
       appBar: AppBar(
-        title: const Text('Search Crimes & Laws'),
-        backgroundColor: AppColors.pnpGold,
-        foregroundColor: AppColors.pnpBlue,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              ),
+        ),
+        title: Text(
+          'Search Crimes & Laws',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.yellow[700],
+        foregroundColor: Colors.black87,
+        elevation: 2,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TextField(
-              controller: _controller,
-              style: const TextStyle(color: AppColors.pnpWhite),
-              decoration: InputDecoration(
-                hintText: 'Type crime or law here...',
-                hintStyle: const TextStyle(color: Colors.white54),
-                prefixIcon: const Icon(Icons.search, color: AppColors.pnpWhite),
-                filled: true,
-                fillColor: const Color(0xFF1F2023),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.white24),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: AppColors.pnpGold),
-                  borderRadius: BorderRadius.circular(12),
+            // 🔍 Search Field
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.yellow[700]!, width: 1.2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: _searchCrimes,
+                decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.search, color: Colors.yellow[800]),
+                  hintText: 'Type crime or law here...',
+                  hintStyle: TextStyle(color: Colors.grey[600]),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                 ),
               ),
-              textInputAction: TextInputAction.search,
-              onSubmitted: (value) => _performSearch(value),
             ),
-            const SizedBox(height: 12),
-            if (_loading) const LinearProgressIndicator(),
-            if (_status.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  _status,
-                  style: const TextStyle(color: Colors.white70),
-                ),
-              ),
+
+            const SizedBox(height: 20),
+
+            // 📄 Results Section
             Expanded(
               child:
-                  _results.isEmpty
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _searchResults.isEmpty
                       ? Center(
                         child: Text(
-                          _loading
-                              ? ''
-                              : (_status.isEmpty
-                                  ? 'Type and press Search'
-                                  : _status),
-                          style: const TextStyle(color: Colors.white60),
+                          _searchController.text.isEmpty
+                              ? 'Start typing to search for a crime or law.'
+                              : 'No matching results found.',
+                          style: TextStyle(
+                            color: Colors.grey[700],
+                            fontSize: 16,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       )
                       : ListView.builder(
-                        itemCount: _results.length,
-                        itemBuilder:
-                            (context, index) =>
-                                _buildResultCard(_results[index]),
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: _searchResults.length,
+                        itemBuilder: (context, index) {
+                          final crime = _searchResults[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.yellow[700]!,
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 5,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(16),
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.yellow[700],
+                                child: const Icon(
+                                  Icons.gavel,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              title: Text(
+                                crime['name'],
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 17,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    crime['law'],
+                                    style: TextStyle(
+                                      color: Colors.yellow[900],
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    crime['description'],
+                                    style: TextStyle(
+                                      color: Colors.grey[800],
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // ℹ️ Info Section
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.yellow[100],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.yellow[700]!),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'About Crimes & Laws',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Crimes are acts that violate the law and are punishable under the Revised Penal Code. '
+                    'Each crime corresponds to specific legal provisions and penalties defined by Philippine law.',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.black87,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

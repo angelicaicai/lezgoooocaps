@@ -1,240 +1,125 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../theme/theme.dart';
 
-class AdminDashboard extends StatelessWidget {
+class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
+
+  @override
+  State<AdminDashboard> createState() => _AdminDashboardState();
+}
+
+class _AdminDashboardState extends State<AdminDashboard> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<Map<String, int>> _getMostViewedLaws() async {
+    final snapshot = await _firestore.collection('search_logs').get();
+    final Map<String, int> counts = {};
+
+    for (var doc in snapshot.docs) {
+      final lawTitle = doc['lawTitle'];
+      counts[lawTitle] = (counts[lawTitle] ?? 0) + 1;
+    }
+
+    return counts;
+  }
+
+  Future<Map<String, int>> _getUserActivity() async {
+    final snapshot = await _firestore.collection('search_logs').get();
+    final Map<String, int> userCounts = {};
+
+    for (var doc in snapshot.docs) {
+      final userEmail = doc['userEmail'];
+      userCounts[userEmail] = (userCounts[userEmail] ?? 0) + 1;
+    }
+
+    return userCounts;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Admin Dashboard')),
-      body: ListView(
+      backgroundColor: AppColors.lightBackground,
+      appBar: AppBar(
+        title: const Text('Admin Dashboard'),
+        backgroundColor: AppColors.primaryColor,
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        children: [
-          const Text(
-            'Admin Tools',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          Card(
-            elevation: 3,
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.teal,
-                child: Icon(Icons.search, color: Colors.white),
-              ),
-              title: const Text(
-                'Search History & Trends',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: const Text(
-                'View global and per-user search history and most-searched keywords.',
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AdminSearchStatsScreen(),
+        child: Column(
+          children: [
+            _buildSectionTitle('📊 Most Viewed Special Laws'),
+            FutureBuilder<Map<String, int>>(
+              future: _getMostViewedLaws(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final data = snapshot.data!;
+                final sorted = data.entries.toList()
+                  ..sort((a, b) => b.value.compareTo(a.value));
+
+                return Card(
+                  color: AppColors.cardBackground,
+                  child: Column(
+                    children: sorted.map((entry) {
+                      return ListTile(
+                        leading: Icon(Icons.book, color: AppColors.primaryColor),
+                        title: Text(entry.key, style: TextStyle(color: AppColors.textPrimary)),
+                        trailing: Text('${entry.value} views', style: TextStyle(color: AppColors.textSecondary)),
+                      );
+                    }).toList(),
                   ),
                 );
               },
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
-class AdminSearchStatsScreen extends StatefulWidget {
-  const AdminSearchStatsScreen({super.key});
+            const SizedBox(height: 24),
+            _buildSectionTitle('👥 User Viewing Activity'),
+            FutureBuilder<Map<String, int>>(
+              future: _getUserActivity(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-  @override
-  State<AdminSearchStatsScreen> createState() => _AdminSearchStatsScreenState();
-}
+                final userData = snapshot.data!;
+                final sortedUsers = userData.entries.toList()
+                  ..sort((a, b) => b.value.compareTo(a.value));
 
-class _AdminSearchStatsScreenState extends State<AdminSearchStatsScreen> {
-  bool _loading = false;
-  List<MapEntry<String, int>> _sorted = [];
-  String _mode = 'global'; // 'global' or 'per_user'
-  final TextEditingController _emailController = TextEditingController();
-  String? _statusMessage;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadGlobal();
-  }
-
-  Future<void> _loadGlobal() async {
-    setState(() {
-      _loading = true;
-      _statusMessage = null;
-      _sorted = [];
-    });
-    try {
-      final snapshot =
-          await FirebaseFirestore.instance
-              .collectionGroup('search_history')
-              .get();
-      final counts = <String, int>{};
-      for (var doc in snapshot.docs) {
-        final keyword = (doc['keyword'] ?? '').toString().toLowerCase().trim();
-        if (keyword.isEmpty) continue;
-        counts[keyword] = (counts[keyword] ?? 0) + 1;
-      }
-      setState(() {
-        _sorted =
-            counts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
-      });
-    } catch (e) {
-      setState(() {
-        _statusMessage = 'Error loading global searches: $e';
-      });
-    } finally {
-      setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _loadPerUser(String email) async {
-    setState(() {
-      _loading = true;
-      _statusMessage = null;
-      _sorted = [];
-    });
-    try {
-      final userQuery =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .where('email', isEqualTo: email)
-              .limit(1)
-              .get();
-      if (userQuery.docs.isEmpty) {
-        setState(() {
-          _statusMessage = 'No user found with that email.';
-        });
-        return;
-      }
-      final uid = userQuery.docs.first.id;
-      final snapshot =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(uid)
-              .collection('search_history')
-              .get();
-      final counts = <String, int>{};
-      for (var doc in snapshot.docs) {
-        final keyword = (doc['keyword'] ?? '').toString().toLowerCase().trim();
-        if (keyword.isEmpty) continue;
-        counts[keyword] = (counts[keyword] ?? 0) + 1;
-      }
-      setState(() {
-        _sorted =
-            counts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
-      });
-    } catch (e) {
-      setState(() {
-        _statusMessage = 'Error loading user searches: $e';
-      });
-    } finally {
-      setState(() => _loading = false);
-    }
-  }
-
-  Widget _buildControls() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ToggleButtons(
-          isSelected: [_mode == 'global', _mode == 'per_user'],
-          onPressed: (i) {
-            setState(() {
-              _mode = i == 0 ? 'global' : 'per_user';
-              _statusMessage = null;
-            });
-            if (_mode == 'global') _loadGlobal();
-          },
-          children: const [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Text('Global'),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Text('Per User'),
+                return Card(
+                  color: AppColors.cardBackground,
+                  child: Column(
+                    children: sortedUsers.map((entry) {
+                      return ListTile(
+                        leading: Icon(Icons.person, color: AppColors.primaryColor),
+                        title: Text(entry.key, style: TextStyle(color: AppColors.textPrimary)),
+                        trailing: Text('${entry.value} views', style: TextStyle(color: AppColors.textSecondary)),
+                      );
+                    }).toList(),
+                  ),
+                );
+              },
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        if (_mode == 'per_user')
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'User email',
-                    hintText: 'user@example.com',
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: () => _loadPerUser(_emailController.text.trim()),
-                child: const Text('Load'),
-              ),
-            ],
-          ),
-        const SizedBox(height: 12),
-      ],
+      ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Search History & Trends')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            _buildControls(),
-            if (_loading) const LinearProgressIndicator(),
-            if (_statusMessage != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  _statusMessage!,
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
-            Expanded(
-              child:
-                  _sorted.isEmpty
-                      ? Center(
-                        child: Text(
-                          _loading ? 'Loading...' : 'No search data yet.',
-                        ),
-                      )
-                      : ListView.separated(
-                        itemCount: _sorted.length,
-                        separatorBuilder: (_, __) => const Divider(),
-                        itemBuilder: (context, index) {
-                          final entry = _sorted[index];
-                          return ListTile(
-                            leading: CircleAvatar(child: Text('${index + 1}')),
-                            title: Text(
-                              entry.key,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            trailing: Text('${entry.value}x'),
-                          );
-                        },
-                      ),
-            ),
-          ],
+  Widget _buildSectionTitle(String title) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          title,
+          style: TextStyle(
+            color: AppColors.primaryColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
       ),
     );

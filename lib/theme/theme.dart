@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use, unused_import
+// ignore_for_file: deprecated_member_use, unused_import, prefer_typing_uninitialized_variables
 
 import 'package:flutter/material.dart';
 import '../theme/theme.dart'; // Adjust the path as needed
@@ -17,6 +17,16 @@ class AppColors {
   static const Color warningRed = Color(0xFFD32F2F);
   static const Color successGreen = Color(0xFF388E3C);
   static const Color infoBlue = Color(0xFF1976D2);
+
+  static var lightBackground;
+
+  static var primaryColor;
+
+  static var cardBackground;
+
+  static var textPrimary;
+
+  static var textSecondary;
 }
 
 // Crime type colors for better visual organization
